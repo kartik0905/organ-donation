@@ -170,5 +170,5 @@ cd odms-frontend
 ---
 
 <div align="center">
-  Built with ❤️ to save lives through technology  
+  Built with ❤️ by Kartik 
 </div>
