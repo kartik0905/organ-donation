@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 
 const RecipientSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true, 
+  },
   fullName: {
     type: String,
     required: true,
@@ -15,11 +21,6 @@ const RecipientSchema = new mongoose.Schema({
   },
   contactInfo: {
     type: String,
-    required: true,
-  },
-  registeredBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
     required: true,
   },
   status: {
