@@ -13,15 +13,13 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["Admin", "Hospital"], 
-    default: "Hospital",
+    enum: ["Admin", "Hospital", "Donor", "Recipient"],
+    required: true,
   },
   hospitalName: {
-
-    type: String,
+    type: String, 
   },
 });
-
 
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

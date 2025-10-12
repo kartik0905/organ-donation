@@ -1,18 +1,22 @@
 const Donor = require("../models/donor.models.js");
-const User = require("../models/user.models.js");
+
 
 exports.addDonor = async (req, res) => {
   const { fullName, bloodGroup, organToDonate, contactInfo } = req.body;
-
   try {
+    const existingProfile = await Donor.findOne({ user: req.user.id });
+    if (existingProfile) {
+      return res
+        .status(400)
+        .json({ msg: "A donor profile already exists for this user." });
+    }
     const newDonor = new Donor({
       fullName,
       bloodGroup,
       organToDonate,
       contactInfo,
-      registeredBy: req.user.id,
+      user: req.user.id, 
     });
-
     const donor = await newDonor.save();
     res.json(donor);
   } catch (err) {
@@ -21,12 +25,10 @@ exports.addDonor = async (req, res) => {
   }
 };
 
+
 exports.getDonors = async (req, res) => {
   try {
-    const donors = await Donor.find().populate("registeredBy", [
-      "hospitalName",
-      "email",
-    ]);
+    const donors = await Donor.find().populate("user", ["email", "role"]);
     res.json(donors);
   } catch (err) {
     console.error(err.message);
@@ -34,14 +36,28 @@ exports.getDonors = async (req, res) => {
   }
 };
 
+exports.getMyDonorProfile = async (req, res) => {
+  try {
+    const donorProfile = await Donor.findOne({ user: req.user.id });
+    if (!donorProfile) {
+      return res
+        .status(404)
+        .json({ msg: "No donor profile found for this user." });
+    }
+    res.json(donorProfile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+
 exports.getDonorById = async (req, res) => {
   try {
     const donor = await Donor.findById(req.params.id);
-
     if (!donor) {
       return res.status(404).json({ msg: "Donor not found" });
     }
-
     res.json(donor);
   } catch (err) {
     console.error(err.message);
@@ -49,29 +65,18 @@ exports.getDonorById = async (req, res) => {
   }
 };
 
+
 exports.updateDonorStatus = async (req, res) => {
   const { status } = req.body;
-
   try {
-    let donor = await Donor.findById(req.params.id);
-
-    if (!donor) {
-      return res.status(404).json({ msg: "Donor not found" });
-    }
-
-    if (
-      donor.registeredBy.toString() !== req.user.id &&
-      req.user.role !== "Admin"
-    ) {
-      return res.status(401).json({ msg: "User not authorized" });
-    }
-
-    donor = await Donor.findByIdAndUpdate(
+    const donor = await Donor.findByIdAndUpdate(
       req.params.id,
       { $set: { status } },
       { new: true }
     );
-
+    if (!donor) {
+      return res.status(404).json({ msg: "Donor not found" });
+    }
     res.json(donor);
   } catch (err) {
     console.error(err.message);

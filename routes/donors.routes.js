@@ -5,12 +5,23 @@ const {
   getDonors,
   getDonorById,
   updateDonorStatus,
+  getMyDonorProfile,
 } = require("../controllers/donor.controllers.js");
 const { protect, authorize } = require("../middleware/auth.middleware.js");
 
-router.post("/", protect, authorize("Hospital", "Admin"), addDonor);
+
+router.post("/", protect, authorize("Donor", "Hospital", "Admin"), addDonor);
+
+
 router.get("/", protect, authorize("Admin"), getDonors);
-router.get("/:id", protect, getDonorById);
+
+
+router.get("/profile/me", protect, authorize("Donor"), getMyDonorProfile);
+
+
+router.get("/:id", protect, authorize("Admin", "Hospital"), getDonorById);
+
+
 router.put(
   "/status/:id",
   protect,
